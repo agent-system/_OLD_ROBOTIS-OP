@@ -6,7 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
       roscpp rospy std_msgs sensor_msgs geometry_msgs image_transport cv_bridge message_generation dynamic_reconfigure)
 
 ## System dependencies are found with CMake's conventions
-#find_package(ball_detector REQUIRED)
+find_package(ball_detector REQUIRED)
 
 #SRCS files
 SET(SRCS 
