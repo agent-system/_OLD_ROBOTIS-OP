@@ -13,18 +13,6 @@ SET(SRCS
       src/ball_detector_node.cpp
 )
 
-SET(ball_detector
-    /home/'username'/ball_detector
-)
-
-SET(ball_detector_INCLUDE_DIR
-    ${ball_detector}/src
-)
-
-SET(ball_detector_LIB
-    ${ball_detector}/lib/libball_detector.so
-)
-
 ## Add messages to be generated
 add_message_files(FILES circleSetStamped.msg)
 
@@ -46,4 +34,4 @@ include_directories(${ball_detector_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 ## Declare a cpp executable
 add_executable(btr_ball_detector_node ${SRCS} src/ball_detector_main.cpp)
 add_dependencies(btr_ball_detector_node ${PROJECT_NAME}_EXPORTED_TARGETS)
-target_link_libraries(btr_ball_detector_node ${ball_detector_LIB} ${catkin_LIBRARIES})
+target_link_libraries(btr_ball_detector_node ${ball_detector_LIBRARIES} ${catkin_LIBRARIES})

@@ -14,8 +14,8 @@ CballDetectorNode::CballDetectorNode() : nh(ros::this_node::getName()) , it(this
       nh.getParam("hough_accum_th", detCfg.hough_accum_th); 
       nh.getParam("min_radius", detCfg.min_radius);
       nh.getParam("max_radius", detCfg.max_radius); 
-      nh.getParam("filter_threshold", detCfg.filter_threshold);
-      nh.param<bool>("filter_debug", detCfg.debug, false);
+      // nh.getParam("filter_threshold", detCfg.filter_threshold);
+      // nh.param<bool>("filter_debug", detCfg.debug, false);
       
       //sets config and prints it
       detector.setParameters(detCfg);
@@ -59,7 +59,7 @@ void CballDetectorNode::process()
             detector.setInputImage(cvImgPtrSubs->image);
             
             // test image filtering
-            detector.filterImage(0);
+            // detector.filterImage(0);
 
             //detect circles
             detector.houghDetection(this->imgEncoding);
