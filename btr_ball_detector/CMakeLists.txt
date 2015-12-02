@@ -6,23 +6,11 @@ find_package(catkin REQUIRED COMPONENTS
       roscpp rospy std_msgs sensor_msgs geometry_msgs image_transport cv_bridge message_generation dynamic_reconfigure)
 
 ## System dependencies are found with CMake's conventions
-#find_package(ball_detector REQUIRED)
+find_package(ball_detector REQUIRED)
 
 #SRCS files
 SET(SRCS 
       src/ball_detector_node.cpp
-)
-
-SET(ball_detector
-    /home/'username'/ball_detector
-)
-
-SET(ball_detector_INCLUDE_DIR
-    ${ball_detector}/src
-)
-
-SET(ball_detector_LIB
-    ${ball_detector}/lib/libball_detector.so
 )
 
 ## Add messages to be generated
@@ -41,9 +29,9 @@ catkin_package(
 )
 
 ## Specify additional locations of header files
-include_directories(${ball_detector_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
+include_directories(${ball_detector_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 ## Declare a cpp executable
 add_executable(btr_ball_detector_node ${SRCS} src/ball_detector_main.cpp)
 add_dependencies(btr_ball_detector_node ${PROJECT_NAME}_EXPORTED_TARGETS)
-target_link_libraries(btr_ball_detector_node ${ball_detector_LIB} ${catkin_LIBRARIES})
+target_link_libraries(btr_ball_detector_node ${ball_detector_LIBRARIES} ${catkin_LIBRARIES})
