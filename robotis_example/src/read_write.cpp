@@ -25,9 +25,9 @@
 #include <std_msgs/ColorRGBA.h>
 #include <sensor_msgs/JointState.h>
 
-#include <robotis_controller/ControlWrite.h>
-#include <robotis_controller/ControlTorque.h>
-#include <robotis_controller/PublishPosition.h>
+#include <robotis_controller_msgs/ControlWrite.h>
+#include <robotis_controller_msgs/ControlTorque.h>
+#include <robotis_controller_msgs/PublishPosition.h>
 
 enum {
     LEFT_TO_RIGHT,
@@ -62,10 +62,10 @@ std::string joint_name[20] = {
 ros::Publisher joint_states_pub;
 ros::Publisher control_write_pub;
 
-void control_write(int id, int addr, int length, int value)
+void control_write(std::string name, int addr, int length, int value)
 {
-    robotis_controller::ControlWrite cw;
-    cw.id = id;
+    robotis_controller_msgs::ControlWrite cw;
+    cw.name = name;
     cw.addr = addr;
     cw.length = length;
     cw.value = value;
@@ -84,7 +84,7 @@ void eye_led_color_callback(const std_msgs::ColorRGBA::ConstPtr& msg)
     g = ((int)msg->g & 0xFF) >> 3;
     b = ((int)msg->b & 0xFF) >> 3;
     rgb = r + (g << 5) + (b << 10);
-    control_write(200, 28, 2, rgb);
+    control_write("sub_controller", 28, 2, rgb);
 }
 
 void head_led_color_callback(const std_msgs::ColorRGBA::ConstPtr& msg)
@@ -94,7 +94,7 @@ void head_led_color_callback(const std_msgs::ColorRGBA::ConstPtr& msg)
     g = ((int)msg->g & 0xFF) >> 3;
     b = ((int)msg->b & 0xFF) >> 3;
     rgb = r + (g << 5) + (b << 10);
-    control_write(200, 26, 2, rgb);
+    control_write("sub_controller", 26, 2, rgb);
 }
 
 void op2_joint_states_callback(const sensor_msgs::JointState::ConstPtr& msg)
@@ -144,6 +144,7 @@ void op2_joint_states_callback(const sensor_msgs::JointState::ConstPtr& msg)
         }
     }
 
+    joint_states.header.stamp = ros::Time::now();
     joint_states_pub.publish(joint_states);
 }
 
@@ -157,11 +158,11 @@ int main(int argc, char **argv)
     ros::Subscriber eye_led_color_sub   = nh.subscribe("/eye_led_color", 10, eye_led_color_callback);
     ros::Subscriber head_led_color_sub  = nh.subscribe("/head_led_color", 10, head_led_color_callback);
 
-    ros::Publisher pp_pub = nh.advertise<robotis_controller::PublishPosition>("/publish_position", 10);
-    ros::Publisher ct_pub = nh.advertise<robotis_controller::ControlTorque>("/control_torque", 10);
+    ros::Publisher pp_pub = nh.advertise<robotis_controller_msgs::PublishPosition>("/publish_position", 10);
+    ros::Publisher ct_pub = nh.advertise<robotis_controller_msgs::ControlTorque>("/control_torque", 10);
 
     joint_states_pub = nh.advertise<sensor_msgs::JointState>("/controller_joint_states", 10);
-    control_write_pub = nh.advertise<robotis_controller::ControlWrite>("/control_write", 10);
+    control_write_pub = nh.advertise<robotis_controller_msgs::ControlWrite>("/control_write", 10);
 
     // Wait for robotis_manager initialization
     while(manager_ready == false)
@@ -169,16 +170,21 @@ int main(int argc, char **argv)
     sleep(2);
 
     // CM-740 control table address 24 : Dynamixel Power
-    control_write(200, 24, 1, 1);
+    control_write("sub_controller", 24, 1, 1);
     usleep(100*1000);
 
     // Enable the torque of all dynamixels.
-    control_write(254, 24, 1, 1);
+    robotis_controller_msgs::ControlTorque ct;
+    for(int i = 0; i < 20; i++) {
+        ct.name.push_back(joint_name[i]);
+        ct.enable.push_back(true);
+    }
+    ct_pub.publish(ct);
     usleep(100*1000);
 
     /***** init pose start *****/
     // set the goal velocity of all dynamixels to 100
-    control_write(254, 32, 2, 100);
+    control_write("_ALL_", 32, 2, 100);
 
     // init pose (sit down)
     sensor_msgs::JointState init_joint_states;
@@ -208,12 +214,13 @@ int main(int argc, char **argv)
     sleep(3);
 
     // set the goal velocity of all dynamixels to 0
-    control_write(254, 32, 2, 0);
+    control_write("_ALL_", 32, 2, 0);
     /***** init pose end *****/
 
 
     // Right Arm Torque OFF
-    robotis_controller::ControlTorque ct;
+    ct.name.clear();
+    ct.enable.clear();
     ct.name.push_back("r_sho_pitch");
     ct.enable.push_back(false);
     ct.name.push_back("r_sho_roll");
@@ -228,7 +235,7 @@ int main(int argc, char **argv)
 
 
     // publish all joint position
-    robotis_controller::PublishPosition pp;
+    robotis_controller_msgs::PublishPosition pp;
     for(int i = 0; i < 20; i++)
     {
         pp.name.push_back(joint_name[i]);

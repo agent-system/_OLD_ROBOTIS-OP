@@ -3,6 +3,7 @@ project(robotis_example)
 
 find_package(catkin REQUIRED COMPONENTS
   robotis_controller
+  robotis_controller_msgs
   roscpp
   std_msgs
 )
