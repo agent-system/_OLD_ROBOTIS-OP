@@ -1,7 +1,7 @@
 # This represents the set of detected circles
 
 #timestamp and frame id of the image frame
-Header header
+std_msgs/Header header
 
 #set of detected circles: 
 #      (circles[i].x, circles[i].y) is the center point in image coordinates
