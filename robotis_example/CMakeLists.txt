@@ -81,7 +81,6 @@ add_executable(example_read_write
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(example_read_write
-  robotis_controller
   ${catkin_LIBRARIES}
 )
 
