@@ -8,12 +8,12 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-#include "sensor_msgs/CameraInfo.h"
+#include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 #include <dynamic_reconfigure/server.h>
-#include "ball_detector/circleSetStamped.h"
-#include "ball_detector/DetectorConfig.h"
-#include "ball_detector/detectorParamsConfig.h"
+#include <ball_detector/circleSetStamped.h>
+#include <ball_detector/DetectorConfig.h>
+#include <ball_detector/detectorParamsConfig.h>
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
