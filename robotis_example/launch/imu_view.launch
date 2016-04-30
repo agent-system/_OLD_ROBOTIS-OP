@@ -1,0 +1,16 @@
+<launch>
+  <param name="robot_description" command="rosrun xacro xacro.py $(find robotis_op2_description)/urdf/robotis_op2.urdf.xacro" />
+  <node pkg="robot_state_publisher" name="robot_state_publisher"
+        type="robot_state_publisher" output="screen" >
+    <remap from="joint_states" to="robot_joint_states" />
+  </node>
+  <node pkg="hector_imu_attitude_to_tf" type="imu_attitude_to_tf_node" name="imu_to_tf" >
+    <remap from="imu_topic" to="imu" />
+    <param name="base_frame" value="base_link" />
+    <param name="base_stabilized_frame" value="odom" />
+    </node>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_footprint"
+        args="0 0 0 0 0 0 base_link base_footprint 10" />
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom"
+        args="0 0 0 0 0 0 map odom 10" />
+</launch>

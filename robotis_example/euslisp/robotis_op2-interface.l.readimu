@@ -1,0 +1,72 @@
+(load "package://pr2eus/robot-interface.l")
+(load "robotis_op2.l")
+(load "irteus/demo/walk-motion.l")
+
+(defmethod robotis_op2-robot
+  (:zero-pose
+   ()
+   (send self
+	 :angle-vector
+	 (float-vector
+	  0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)))
+  (:sit-pose
+   ()
+   (send self 
+	 :angle-vector
+	 #f(-1.49414 -0.791016 65.5664 -130.342 -72.1582
+		     -0.878906 -0.791016 0.878906 -67.0605 129.639
+		     70.1367 2.37305 -4.74609 -38.584
+		     -14.502 3.51562 37.3535 13.8867 0.703125 5.625)
+	 )
+   )
+  )
+
+(defclass robotis_op2-interface
+  :super robot-interface
+  :slots ())
+
+(defmethod robotis_op2-interface
+  (:init
+   (&rest args &key (robot robotis_op2-robot))
+   (send-super* :init :robot robot
+		:joint-states-topic "robot_joint_states"
+		:publish-joint-states-topic "control_joint_states"
+		args)
+   (ros::subscribe "imu" sensor_msgs::Imu #'send self :darwin-cb)
+   self)
+  (:darwin-cb
+   (msg)
+   (let* ((ori (send msg :orientation))
+	  (v (float-vector (ori . ros::_x)
+			   (ori . ros::_y)
+			   (ori . ros::_z))))
+     ;;(format t "ori: ~A, v=~A~%" ori v)
+     ;;(describe ori)
+     )
+   )
+  (:add-controller (&rest args) nil) ;; currently robotis does not support JTA
+  )
+
+;; test code
+(setq *ri* (instance robotis_op2-interface :init))
+(setq *robot* (robotis_op2))
+(objects (list *robot*))
+(defun demo nil
+  (do-until-key
+   (send *robot* :angle-vector (send *ri* :state :potentio-vector))
+   (when (setq a (send *ri* :state :worldcoords))
+     (send *robot* :newcoords a))
+   (send *irtviewer* :draw-objects :flush t)
+   (send *robot* :draw-torque *viewer*
+	 :torque-vector
+	 (coerce (send-all (send *ri* :robot :joint-list) :joint-torque) float-vector)
+	 :flush nil :size 1.0)
+   (send *irtviewer* :flush)
+   (ros::spin-once)
+   ))
+
+(demo)
+
+
+
+         
