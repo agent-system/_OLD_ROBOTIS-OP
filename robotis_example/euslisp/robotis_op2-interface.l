@@ -63,9 +63,6 @@
 		     -14.502 3.51562 37.3535 13.8867 0.703125 5.625)
 	 )
    )
-  )
-
-(defmethod robotis_op2-robot
   (:reset-pose
    ()
    (send self :angle-vector
