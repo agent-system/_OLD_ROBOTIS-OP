@@ -83,7 +83,7 @@
    (when (send *ri* :state :worldcoords)
      (send *robot* :newcoords (send *ri* :state :worldcoords)))
    (send *irtviewer* :draw-objects :flush t)
-   ;; (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.1)
+   (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
    (send *irtviewer* :flush)
    )
   )
@@ -94,11 +94,12 @@
    (when (send *ri* :state :worldcoords)
      (send *robot* :newcoords (send *ri* :state :worldcoords)))
    (send *irtviewer* :draw-objects :flush t)
-   ;; (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.1)
+   (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
    (send *robot* :draw-torque *viewer*
 	 :torque-vector
 	 (coerce (send-all (send *ri* :robot :joint-list) :joint-torque) float-vector)
 	 :flush nil :size 1.0)
+
    (format t "lfsr force=~A lzmp=~A~%"
 	   (ros::tf-point->pos (send (send *ri* :state :lfsr) :wrench :force))
 	   (float-vector (send (send *ri* :state :lzmp) :x)
