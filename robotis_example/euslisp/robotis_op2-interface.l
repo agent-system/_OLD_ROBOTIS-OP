@@ -12,14 +12,14 @@
    (send-super* :init :robot robot :joint-states-topic "robot_joint_states" args)
    (ros::advertise "controller_joint_states" sensor_msgs::JointState 1)
    (ros::create-nodehandle "op2_group")
-   (ros::subscribe "foot_force_sensor/left" geometry_msgs::WrenchStamped #'send self
-:lfsr-cb :groupname "op2_group")
-   (ros::subscribe "foot_force_sensor/right" geometry_msgs::WrenchStamped #'send self
-:rfsr-cb :groupname "op2_group")
-   (ros::subscribe "zmp/left" geometry_msgs::Pose2D #'send self :lzmp-cb
-:groupname "op2_group")
-   (ros::subscribe "zmp/right" geometry_msgs::Pose2D #'send self :rzmp-cb
-:groupname "op2_group")
+   (ros::subscribe "foot_force_sensor/left"
+		   geometry_msgs::WrenchStamped #'send self :lfsr-cb :groupname "op2_group")
+   (ros::subscribe "foot_force_sensor/right"
+		   geometry_msgs::WrenchStamped #'send self :rfsr-cb :groupname "op2_group")
+   (ros::subscribe "zmp/left"
+		   geometry_msgs::Pose2D #'send self :lzmp-cb :groupname "op2_group")
+   (ros::subscribe "zmp/right"
+		   geometry_msgs::Pose2D #'send self :rzmp-cb :groupname "op2_group")
    self)
   (:lfsr-cb (msg) (setq lfsr msg))
   (:rfsr-cb (msg) (setq rfsr msg))
@@ -77,40 +77,58 @@
   (setq *robot* (robotis_op2))
   (objects (list *robot*))
   )
+
+(defun show-fsr nil
+  (when (and (send *ri* :state :lfsr) (send *ri* :state :lzmp))
+    (let* ((f 
+	    (ros::tf-point->pos (send (send *ri* :state :lfsr) :wrench :force)))
+	   (zp (float-vector (send (send *ri* :state :lzmp) :x)
+			     (send (send *ri* :state :lzmp) :y)
+			     0))
+	   (pg (send *robot* :make-sole-polygon :lleg))
+	   (p0 (v+ zp (cadr (send pg :centroid))))
+	   (p1 (v+ p0 (scale (* -0.005 (elt f 2)) (send pg :normal)))))
+	   ;;(format t "lfsr force=~A lzmp=~A~%" f zp)
+      (print (list 'left p0 p1))
+      (send *irtviewer* :viewer :draw-arrow p0 p1))
+    )
+  (when (and (send *ri* :state :rfsr) (send *ri* :state :rzmp))
+    (let* ((f 
+	    (ros::tf-point->pos (send (send *ri* :state :rfsr) :wrench :force)))
+	   (zp (float-vector (send (send *ri* :state :rzmp) :x)
+			     (send (send *ri* :state :rzmp) :y)
+			     0))
+	   (pg (send *robot* :make-sole-polygon :rleg))
+	   (p0 (v+ zp (cadr (send pg :centroid))))
+	   (p1 (v+ p0 (scale (* -0.005 (elt f 2)) (send pg :normal)))))
+      ;;(format t "rfsr force=~A rzmp=~A~%" f zp)
+      (print (list 'right p0 p1))
+      (send *irtviewer* :viewer :draw-arrow p0 p1))
+    ))
+
+(defun demo-update nil
+   (send *robot* :angle-vector (send *ri* :state :potentio-vector))
+   (when (send *ri* :state :worldcoords)
+     (send *robot* :newcoords (send *ri* :state :worldcoords)))
+   (send *irtviewer* :draw-objects :flush t)
+   ;;(send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
+   (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :torque-vector) :flush nil :size 0.5)
+
+   (show-fsr)
+   (send *irtviewer* :flush)
+   ;;(x::window-main-one)
+   )
+
 (defun demo nil
-  (do-until-key
-   (send *robot* :angle-vector (send *ri* :state :potentio-vector))
-   (when (send *ri* :state :worldcoords)
-     (send *robot* :newcoords (send *ri* :state :worldcoords)))
-   (send *irtviewer* :draw-objects :flush t)
-   (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
-   (send *irtviewer* :flush)
-   )
+  (setq *top-selector-interval* 0.01)
+  (pushnew 'demo-update *timer-job*)
   )
 
-(defun demo1 nil
-  (do-until-key
-   (send *robot* :angle-vector (send *ri* :state :potentio-vector))
-   (when (send *ri* :state :worldcoords)
-     (send *robot* :newcoords (send *ri* :state :worldcoords)))
-   (send *irtviewer* :draw-objects :flush t)
-   (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
-   (send *robot* :draw-torque *viewer*
-	 :torque-vector
-	 (coerce (send-all (send *ri* :robot :joint-list) :joint-torque) float-vector)
-	 :flush nil :size 1.0)
+(defun demo-stop nil
+  (pop *timer-job*)
+  (setq *top-selector-interval* 2))
 
-   (format t "lfsr force=~A lzmp=~A~%"
-	   (ros::tf-point->pos (send (send *ri* :state :lfsr) :wrench :force))
-	   (float-vector (send (send *ri* :state :lzmp) :x)
-			 (send (send *ri* :state :lzmp) :y)))
-   (format t "rfsr force=~A rzmp=~A~%"
-	   (ros::tf-point->pos (send (send *ri* :state :rfsr) :wrench :force))
-	   (float-vector (send (send *ri* :state :rzmp) :x)
-			 (send (send *ri* :state :rzmp) :y)))
-   (send *irtviewer* :flush)
-   )
-  )
+(defun demo1 nil (do-until-key (demo-update)))
 
 (defun demo2 nil
   ;;(load "robotis_op2.l")
