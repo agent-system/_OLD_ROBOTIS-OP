@@ -89,7 +89,7 @@
 	   (p0 (v+ zp (cadr (send pg :centroid))))
 	   (p1 (v+ p0 (scale (* -0.005 (elt f 2)) (send pg :normal)))))
 	   ;;(format t "lfsr force=~A lzmp=~A~%" f zp)
-      (print (list 'left p0 p1))
+      ;;(print (list 'left p0 p1))
       (send *irtviewer* :viewer :draw-arrow p0 p1))
     )
   (when (and (send *ri* :state :rfsr) (send *ri* :state :rzmp))
@@ -102,7 +102,7 @@
 	   (p0 (v+ zp (cadr (send pg :centroid))))
 	   (p1 (v+ p0 (scale (* -0.005 (elt f 2)) (send pg :normal)))))
       ;;(format t "rfsr force=~A rzmp=~A~%" f zp)
-      (print (list 'right p0 p1))
+      ;;(print (list 'right p0 p1))
       (send *irtviewer* :viewer :draw-arrow p0 p1))
     ))
 
@@ -128,7 +128,10 @@
   (pop *timer-job*)
   (setq *top-selector-interval* 2))
 
-(defun demo1 nil (do-until-key (demo-update)))
+(defun demo1 nil
+  (do-until-key (demo-update)
+		(x::window-main-one)
+		))
 
 (defun demo2 nil
   ;;(load "robotis_op2.l")
