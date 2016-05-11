@@ -287,7 +287,7 @@ void BallDetector::filterImage()
 void BallDetector::houghDetection(const unsigned int imgEncoding)
 {
     cv::Mat grayImage;
-    cv::vector<cv::Vec3f> circlesCurrent;
+    std::vector<cv::Vec3f> circlesCurrent;
 
     //clear previous circles
     circles.clear();
