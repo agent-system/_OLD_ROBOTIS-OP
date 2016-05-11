@@ -108,8 +108,12 @@
 
 (defun demo-update nil
    (send *robot* :angle-vector (send *ri* :state :potentio-vector))
-   (when (send *ri* :state :worldcoords)
-     (send *robot* :newcoords (send *ri* :state :worldcoords)))
+   (if (send *ri* :state :worldcoords)
+       (send *robot* :newcoords (send *ri* :state :worldcoords))
+     (send *robot* :newcoords
+	   (send *tfl* :lookup-transform "/map"
+		 "/base_footprint" (ros::time)))
+     )
    (send *irtviewer* :draw-objects :flush t)
    ;;(send *robot* :draw-torque *viewer* :torque-vector (send *ri* :state :effort) :flush nil :size 0.5)
    (send *robot* :draw-torque *viewer* :torque-vector (send *ri* :torque-vector) :flush nil :size 0.5)
