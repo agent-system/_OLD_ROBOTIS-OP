@@ -13,11 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   dynamic_reconfigure
   message_generation
+  cmake_modules
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
+find_package(OpenCV REQUIRED)
+message("OpenCV ${OpenCV_VERSION} FOUND")
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -125,6 +129,7 @@ add_dependencies(ball_detector_node ${PROJECT_NAME}_gencfg ${PROJECT_NAME}_gencp
 target_link_libraries(ball_detector_node
   ${catkin_LIBRARIES}
   yaml-cpp
+  ${OpenCV_LIBRARIES}
 )
 
 #############
